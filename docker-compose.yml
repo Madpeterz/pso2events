@@ -1,0 +1,46 @@
+# Step 1: replace {EMAIL} with your email address (Used for SSL certs)
+# Step 2: replace {DOMAIN} with your domain (Example: pso2.madpeter.xyz)
+
+version: '2'
+services:
+    proxy:
+        container_name: Proxy
+        privileged: true
+        restart: always
+        image: jwilder/nginx-proxy:latest
+        ports:
+            - 80:80
+            - 443:443
+        volumes:
+            - streamadmin-certs:/etc/nginx/certs
+            - streamadmin-vhost:/etc/nginx/vhost.d
+            - streamadmin-html:/usr/share/nginx/html
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+
+    letsencrypt:
+        container_name: SA7letsencrypt
+        restart: always
+        image: jrcs/letsencrypt-nginx-proxy-companion:latest
+        environment:
+            NGINX_PROXY_CONTAINER: SA7Proxy
+            DEFAULT_EMAIL: '{EMAIL}'
+        depends_on:
+            - proxy
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - streamadmin-certs:/etc/nginx/certs
+            - streamadmin-vhost:/etc/nginx/vhost.d
+            - streamadmin-html:/usr/share/nginx/html
+    app:
+        container_name: SA7Website
+        restart: always
+        image: madpeter/streamadmin_r7:latest
+        expose:
+            - 8881:80
+        links:
+            - proxy
+        environment:
+            VIRTUAL_PORT: 8881
+            VIRTUAL_HOST: '{DOMAIN}'
+            LETSENCRYPT_HOST: '{DOMAIN}'
+            LETSENCRYPT_EMAIL: '{EMAIL}'
