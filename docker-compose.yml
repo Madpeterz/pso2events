@@ -4,7 +4,7 @@
 version: '2'
 services:
     proxy:
-        container_name: Proxy
+        container_name: pso2Proxy
         privileged: true
         restart: always
         image: jwilder/nginx-proxy:latest
@@ -12,29 +12,29 @@ services:
             - 80:80
             - 443:443
         volumes:
-            - streamadmin-certs:/etc/nginx/certs
-            - streamadmin-vhost:/etc/nginx/vhost.d
-            - streamadmin-html:/usr/share/nginx/html
+            - pso2-certs:/etc/nginx/certs
+            - pso2-vhost:/etc/nginx/vhost.d
+            - pso2-html:/usr/share/nginx/html
             - /var/run/docker.sock:/tmp/docker.sock:ro
 
     letsencrypt:
-        container_name: SA7letsencrypt
+        container_name: pso2letsencrypt
         restart: always
         image: jrcs/letsencrypt-nginx-proxy-companion:latest
         environment:
-            NGINX_PROXY_CONTAINER: SA7Proxy
+            NGINX_PROXY_CONTAINER: pso2Proxy
             DEFAULT_EMAIL: '{EMAIL}'
         depends_on:
             - proxy
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
-            - streamadmin-certs:/etc/nginx/certs
-            - streamadmin-vhost:/etc/nginx/vhost.d
-            - streamadmin-html:/usr/share/nginx/html
+            - pso2-certs:/etc/nginx/certs
+            - pso2-vhost:/etc/nginx/vhost.d
+            - pso2-html:/usr/share/nginx/html
     app:
-        container_name: SA7Website
+        container_name: pso2Website
         restart: always
-        image: madpeter/streamadmin_r7:latest
+        image: madpeter/pso2events:latest
         expose:
             - 8881:80
         links:
